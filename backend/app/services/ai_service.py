@@ -34,7 +34,7 @@ def generate_gemini_response(session_id: str, user_message: str) -> str:
     history = get_chat_history(session_id)
     
     # 2. Initialize model
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash-lite')
     
     # 3. Start chat with history
     chat = model.start_chat(history=history)

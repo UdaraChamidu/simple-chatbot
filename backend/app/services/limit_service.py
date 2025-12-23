@@ -41,7 +41,7 @@ def check_and_increment_limit(fingerprint: str, ip: str, user_id: str = None):
             "prompt_count": stats['prompt_count'] + 1,
             "updated_at": "now()" 
         }).eq("user_id", user_id).execute()
-        return True
+        return stats['prompt_count'] + 1
 
     # --- SCENARIO B: Guest User ---
     else:
@@ -95,5 +95,5 @@ def check_and_increment_limit(fingerprint: str, ip: str, user_id: str = None):
         }
         res = supabase.table("guest_tracking").upsert(data).execute()
         print(f"[DEBUG] Upsert Result: {res}")
-        return True
+        return guest['prompt_count'] + 1
         

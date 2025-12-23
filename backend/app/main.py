@@ -67,6 +67,20 @@ def get_user_stats(authorization: str = Header(None)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/chat/history/{session_id}")
+def get_chat_history(session_id: str):
+    """
+    Returns the chat history for a specific session
+    """
+    try:
+        response = supabase.table("chat_messages").select("role, content").eq("session_id", session_id).order("created_at").execute()
+        return response.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/chat")
 def chat_endpoint(
     req: ChatRequest, 
@@ -92,7 +106,7 @@ def chat_endpoint(
 
         # 2. Check Limits (Bouncer)
         # This will raise HTTP 403 if limit exceeded
-        check_and_increment_limit(req.fingerprint, client_ip, user_id)
+        current_usage = check_and_increment_limit(req.fingerprint, client_ip, user_id)
 
         # 3. Ensure Session Exists
         existing_session = supabase.table("chat_sessions").select("session_id").eq("session_id", req.session_id).execute()
@@ -104,6 +118,14 @@ def chat_endpoint(
                 "user_id": user_id,
                 "title": "New Chat" 
             }).execute()
+        else:
+            # Check if this session needs to be claimed by the user
+            session_data = existing_session.data[0]
+            if user_id and session_data.get('user_id') is None:
+                print(f"[DEBUG] Merging Guest Session {req.session_id} to User {user_id}")
+                supabase.table("chat_sessions").update({
+                    "user_id": user_id
+                }).eq("session_id", req.session_id).execute()
 
         # 4. Save USER message to DB
         supabase.table("chat_messages").insert({
@@ -122,7 +144,11 @@ def chat_endpoint(
             "content": ai_reply
         }).execute()
         
-        return {"reply": ai_reply}
+        return {
+            "reply": ai_reply,
+            "prompt_count": current_usage,
+            "is_guest": user_id is None
+        }
 
     except HTTPException as he:
         raise he
