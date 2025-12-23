@@ -8,6 +8,7 @@ export const UseChat = () => {
   const [fingerprint, setFingerprint] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [limitReached, setLimitReached] = useState(false);
+  const [promptCount, setPromptCount] = useState(0); // Track usage 
 
   // 1. Initialize Fingerprint & Session on Mount
   useEffect(() => {
@@ -26,6 +27,17 @@ export const UseChat = () => {
       localStorage.setItem('chat_session_id', storedSession);
     }
     setSessionId(storedSession);
+
+    // Fetch History
+    fetch(`http://localhost:8000/api/chat/history/${storedSession}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setMessages(data);
+        }
+      })
+      .catch(err => console.error("Failed to fetch history:", err));
+
   }, []);
 
   // 2. Send Message Function
@@ -55,9 +67,14 @@ export const UseChat = () => {
 
       if (!response.ok) {
         if (data.detail === "GUEST_LIMIT_REACHED" || data.detail === "USER_LIMIT_REACHED") {
-          setLimitReached(true); // Trigger Limit Modal
+            setLimitReached(true); // Trigger Limit Modal
         }
         throw new Error(data.detail);
+      }
+
+      // Update prompt count if provided
+      if (data.prompt_count !== undefined) {
+        setPromptCount(data.prompt_count);
       }
 
       // Add AI Response to UI
@@ -70,5 +87,5 @@ export const UseChat = () => {
     }
   };
 
-  return { messages, loading, sendMessage, limitReached, setLimitReached };
+  return { messages, loading, sendMessage, limitReached, setLimitReached, promptCount, setPromptCount };
 };

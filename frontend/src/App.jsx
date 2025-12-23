@@ -3,7 +3,7 @@ import { UseChat } from './hooks/UseChat';
 import { Supabase } from './lib/Supabase'; // Your supabase config
 
 export default function App() {
-  const { messages, loading, sendMessage, limitReached, setLimitReached } = UseChat();
+  const { messages, loading, sendMessage, limitReached, setLimitReached, promptCount, setPromptCount } = UseChat();
   const [input, setInput] = useState('');
   const [session, setSession] = useState(null); // Supabase Auth Session
   const [isPremium, setIsPremium] = useState(false); // Track premium status
@@ -19,6 +19,7 @@ export default function App() {
       .then(res => res.json())
       .then(data => {
         setIsPremium(data.is_premium || false);
+        setPromptCount(data.prompt_count || 0);
       })
       .catch(err => {
         console.error('Failed to fetch user stats:', err);
@@ -26,8 +27,13 @@ export default function App() {
       });
     } else {
       setIsPremium(false);
+      // Fetch guest stats if needed (using fingerprint from UseChat - easier to just rely on UseChat update for guests
+      // unless we add a specific guest-stats endpoint. For now, we can trust UseChat's initial state 
+      // OR we can make a lightweight call.
+      // Let's rely on the chat response updating it, OR adding a specific guest endpoint. 
+      // Actually, let's keep it simple: UseChat handles the session/fingerprint.
     }
-  }, [session]);
+  }, [session, setPromptCount]);
 
   useEffect(() => {
     // 1. Check active session on load
@@ -41,7 +47,9 @@ export default function App() {
       data: { subscription },
     } = Supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session) setLimitReached(false);
+      if (session) {
+        setLimitReached(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -61,6 +69,15 @@ export default function App() {
     });
   };
 
+  const handleLogout = async () => {
+    await Supabase.auth.signOut();
+    setSession(null);
+    setPromptCount(0); // Reset UI count
+  };
+
+  const maxLimit = session ? 8 : 5;
+  const remaining = Math.max(0, maxLimit - promptCount);
+
   return (
     <div className="app-container">
       {/* Header */}
@@ -68,13 +85,47 @@ export default function App() {
         <div className="brand">
           <span>✨</span> GeminiBot
         </div>
-        {isPremium ? (
-          <span className="limit-badge premium">Pro Member</span>
-        ) : session ? (
-          <span className="limit-badge">Free Member (8 prompts)</span>
-        ) : (
-          <span className="limit-badge">Guest Mode (5 Free)</span>
-        )}
+        
+        <div className="user-controls">
+          {session ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div className="user-badge member">
+                <div className="avatar-small">
+                   {session.user?.user_metadata?.avatar_url ? (
+                     <img src={session.user.user_metadata.avatar_url} alt="U" />
+                   ) : (
+                     "👤"
+                   )}
+                </div>
+                <div className="info">
+                  <span className="name">{isPremium ? "Pro Member" : "Free Member"}</span>
+                  <span className="count">{promptCount} / {maxLimit} used</span>
+                </div>
+              </div>
+              <button 
+                onClick={handleLogout} 
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '0.8rem',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+             <div className="user-badge guest">
+               <span className="icon">👾</span>
+               <div className="info">
+                 <span className="name">Guest Mode</span>
+                 <span className="count">{promptCount} / {maxLimit} used</span>
+               </div>
+             </div>
+          )}
+        </div>
       </header>
 
       {/* Chat Area */}
@@ -126,25 +177,32 @@ export default function App() {
       {limitReached && (
         <div className="modal-overlay">
           <div className="modal-card">
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛑</div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Limit Reached</h2>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>
+              {session ? "🌟" : "🛑"}
+            </div>
+            <h2 className="modal-title">
+              {session ? "You've reached the limit!" : "Guest Limit Reached"}
+            </h2>
             
             {!session ? (
               <>
-                <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-                  You've hit the 5-prompt guest limit. Sign in to unlock more!
+                <p className="modal-text">
+                  You've used all 5 free guest prompts. Create a free account to get <strong>3 more prompts</strong> instantly!
                 </p>
+                <div className="upsell-box">
+                  <span>🚀</span> Unlock 8 Total Prompts
+                </div>
                 <button onClick={handleLogin} className="btn-primary">
                   Sign in with Google
                 </button>
               </>
             ) : (
               <>
-                <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-                  You have reached the absolute limit of 8 prompts. Thanks for testing!
+                <p className="modal-text">
+                  You have used all 8 free prompts properly. We hope you enjoyed the demo!
                 </p>
-                <div style={{ background: '#f1f5f9', padding: '0.75rem', borderRadius: '8px', color: '#94a3b8', fontWeight: 600 }}>
-                  Max Limit Reached
+                <div className="upsell-box premium">
+                  <span>💎</span> Premium Plan Coming Soon
                 </div>
               </>
             )}

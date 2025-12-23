@@ -269,3 +269,125 @@ body {
   text-decoration: underline;
   color: var(--text-main);
 }
+
+/* --- USER BADGE & CONTROLS --- */
+.user-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  padding: 0.35rem 0.5rem 0.35rem 0.35rem;
+  border-radius: 99px;
+  border: 1px solid var(--border-color);
+  background: white;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+}
+
+.user-badge:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.05);
+}
+
+.user-badge.guest {
+  background: linear-gradient(to right, #f8fafc, #fff);
+}
+
+.user-badge.member {
+  background: linear-gradient(to right, #fdfbf7, #fff); /* Warm/Gold tint hint */
+  border-color: #fcd34d; /* Amber-300 */
+}
+
+.user-badge .icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  border-radius: 50%;
+  font-size: 1rem;
+  margin-right: 0.5rem;
+}
+
+.avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 0.5rem;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px var(--border-color);
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-badge .info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  padding-right: 0.5rem;
+}
+
+.user-badge .name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.user-badge .count {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* --- NEW MODAL STYLES --- */
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.modal-text {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.upsell-box {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.upsell-box.premium {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #fde68a;
+  color: #92400e;
+}
