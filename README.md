@@ -2,8 +2,7 @@
 
 **Lumina AI** is a premium, next-generation chatbot interface designed to provide a seamless and visually stunning conversational experience. Built with a modern tech stack, it features strict usage limits, secure authentication, and a "Glassmorphism" design aesthetic.
 
-![Lumina UI Preview](./lumina_chatbot_ui_1766549932791.png)
-*(Note: Add your screenshot here)*
+*<img width="1292" height="883" alt="image" src="https://github.com/user-attachments/assets/1fcd386b-f490-4e3f-98a7-b559fb52098d" />*
 
 ## 🚀 Features
 
@@ -131,4 +130,4 @@ lumina-ai/
 
 ---
 
-Made with ✨ by **Lumina Team**
+Made with ✨ by **Udara Chamidu**
