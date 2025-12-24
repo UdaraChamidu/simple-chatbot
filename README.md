@@ -130,4 +130,4 @@ lumina-ai/
 
 ---
 
-Made with ✨ by **Lumina Team**
+Made with ✨ by **Udara Chamidu**
