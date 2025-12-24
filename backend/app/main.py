@@ -31,6 +31,7 @@ class ChatRequest(BaseModel):
     message: str
     session_id: str
     fingerprint: str
+    system_instruction: Optional[str] = None
     
 # --- ROUTES ---
 @app.get("/api/user/stats")
@@ -149,7 +150,7 @@ def chat_endpoint(
         }).execute()
 
         # 5. Generate AI Response
-        ai_reply = generate_gemini_response(req.session_id, req.message)
+        ai_reply = generate_gemini_response(req.session_id, req.message, req.system_instruction)
         
         # 6. Save AI message to DB
         supabase.table("chat_messages").insert({

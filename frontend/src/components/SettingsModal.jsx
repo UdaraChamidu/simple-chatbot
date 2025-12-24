@@ -118,6 +118,25 @@ export default function SettingsModal({ isOpen, onClose, initialTab = 'general',
                 <div className="space-y-6 animate-fadeIn">
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white border-b border-gray-200 dark:border-white/10 pb-2">Chat Experience</h3>
                     
+                     {/* System Prompt */}
+                     <div>
+                        <div className="flex justify-between mb-2">
+                             <div className="font-medium text-slate-700 dark:text-slate-200">System Instructions</div>
+                             <div className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Defines AI Personality</div>
+                        </div>
+                        <textarea 
+                            className="w-full h-24 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none"
+                            placeholder="e.g., You are a helpful assistant. Be concise."
+                            value={localStorage.getItem('systemPrompt') || ''}
+                            onChange={(e) => {
+                                localStorage.setItem('systemPrompt', e.target.value);
+                                // Force re-render isn't ideal but works for simple local storage sync
+                                // Better: hoist state or use context. For now, this is quick.
+                            }}
+                        />
+                        <p className="text-[10px] text-slate-500 mt-2">These instructions will be sent with every message to guide the AI's behavior.</p>
+                     </div>
+
                      {/* Temperature Slider */}
                      <div>
                         <div className="flex justify-between mb-2">

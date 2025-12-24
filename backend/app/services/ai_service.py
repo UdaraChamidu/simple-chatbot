@@ -29,12 +29,16 @@ def get_chat_history(session_id: str):
             
     return history
 
-def generate_gemini_response(session_id: str, user_message: str) -> str:
+def generate_gemini_response(session_id: str, user_message: str, system_instruction: str = None) -> str:
     # 1. Get History
     history = get_chat_history(session_id)
     
-    # 2. Initialize model
-    model = genai.GenerativeModel('gemini-2.5-flash-lite')
+    # 2. Initialize model with System Instruction if provided
+    try:
+         model = genai.GenerativeModel('gemini-2.5-flash-lite', system_instruction=system_instruction)
+    except Exception as e:
+         print(f"Model Init Warning: {e}")
+         model = genai.GenerativeModel('gemini-2.5-flash-lite')
     
     # 3. Start chat with history
     chat = model.start_chat(history=history)

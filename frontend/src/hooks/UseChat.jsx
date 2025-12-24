@@ -59,7 +59,8 @@ export const UseChat = () => {
         body: JSON.stringify({
           message: text,
           session_id: sessionId,
-          fingerprint: fingerprint
+          fingerprint: fingerprint,
+          system_instruction: localStorage.getItem('systemPrompt') || undefined
         }),
       });
 
