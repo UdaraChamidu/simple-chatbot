@@ -16,6 +16,8 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState({ isOpen: false, tab: 'general' });
 
   // Fetch user stats when session changes
+  // Fetch user stats when session changes (DISABLED: N8N manages DB/Logic)
+  /*
   useEffect(() => {
     if (session?.access_token) {
       fetch('http://localhost:8000/api/user/stats', {
@@ -34,6 +36,7 @@ export default function App() {
       });
     }
   }, [session, setPromptCount]);
+  */
 
   useEffect(() => {
     Supabase.auth.getSession().then(({ data: { session } }) => {

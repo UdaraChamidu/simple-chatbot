@@ -28,7 +28,8 @@ export const UseChat = () => {
     }
     setSessionId(storedSession);
 
-    // Fetch History
+    // Fetch History (DISABLED: N8N manages DB now)
+    /* 
     fetch(`http://localhost:8000/api/chat/history/${storedSession}`)
       .then(res => res.json())
       .then(data => {
@@ -36,7 +37,8 @@ export const UseChat = () => {
           setMessages(data);
         }
       })
-      .catch(err => console.error("Failed to fetch history:", err));
+      .catch(err => console.error("Failed to fetch history:", err)); 
+    */
 
   }, []);
 
@@ -53,41 +55,45 @@ export const UseChat = () => {
       const headers = { 'Content-Type': 'application/json' };
       if (userToken) headers['Authorization'] = `Bearer ${userToken}`;
 
-// https://n8n-klmi.onrender.com/webhook-test/fb05eaf5-6e3b-4fef-bbc5-9636e16539e7
+      // Single call to N8N Webhook (Handles DB & AI)
+      const WEBHOOK_URL = 'https://n8n-klmi.onrender.com/webhook-test/fb05eaf5-6e3b-4fef-bbc5-9636e16539e7';
+      const systemPrompt = localStorage.getItem('systemPrompt');
 
-
-
-      const response = await fetch('http://localhost:8000/api/chat', {
+      const response = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify({
           message: text,
           session_id: sessionId,
           fingerprint: fingerprint,
-          system_instruction: localStorage.getItem('systemPrompt') || undefined
+          system_instruction: systemPrompt
         }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        if (data.detail === "GUEST_LIMIT_REACHED" || data.detail === "USER_LIMIT_REACHED") {
-            setLimitReached(true); // Trigger Limit Modal
-        }
-        throw new Error(data.detail);
+      // Handle N8N Response Formats
+      if (data.status === "EMAIL_REQUIRED") {
+          setLimitReached(true); // Trigger Login/email Modal
+          // You might want to show data.message to the user too
+          throw new Error(data.message || "Limit reached");
       }
 
-      // Update prompt count if provided
-      if (data.prompt_count !== undefined) {
-        setPromptCount(data.prompt_count);
+      if (data.status === "OK" || data.response) {
+          // Update prompt count
+          if (data.prompts_used !== undefined) {
+             setPromptCount(data.prompts_used);
+          }
+          
+          // Add AI Response
+          const aiContent = data.response || data.output || data.reply;
+          setMessages((prev) => [...prev, { role: 'ai', content: aiContent }]);
+      } else {
+          console.warn("Unknown N8N response format:", data);
       }
-
-      // Add AI Response to UI
-      setMessages((prev) => [...prev, { role: 'ai', content: data.reply }]);
     
     } catch (error) {
       console.error("Chat error:", error);
-    } finally {
       setLoading(false);
     }
   };

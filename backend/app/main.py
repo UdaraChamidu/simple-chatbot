@@ -153,12 +153,14 @@ def chat_endpoint(
         # 5. Generate AI Response
         ai_reply = generate_gemini_response(req.session_id, req.message, req.system_instruction)
         
-        # 6. Save AI message to DB
+        # 6. Save AI message to DB (DISABLED: N8N handles storage)
+        '''
         supabase.table("chat_messages").insert({
             "session_id": req.session_id,
             "role": "ai",
             "content": ai_reply
         }).execute()
+        '''
         
         return {
             "reply": ai_reply,
