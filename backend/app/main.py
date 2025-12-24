@@ -48,16 +48,30 @@ def get_user_stats(authorization: str = Header(None)):
             raise HTTPException(status_code=401, detail="Invalid token")
         
         user_id = user.user.id
+        user_email = user.user.email # Extract email
         
-        # Fetch user stats
-        response = supabase.table("user_stats").select("*").eq("user_id", user_id).execute()
+        # Upsert user stats with email (Sync logic)
+        # We try to update the email first. If no record, we insert. 
+        # Actually user_stats might be created by the limit service first, so we just update the email.
         
-        if not response.data:
-            # User has no stats yet, return default
-            return {
-                "is_premium": False,
+        # First check if user exists
+        check = supabase.table("user_stats").select("*").eq("user_id", user_id).execute()
+        
+        if check.data:
+            # Update email if it's missing or changed
+            current_email = check.data[0].get("email")
+            if current_email != user_email:
+                supabase.table("user_stats").update({"email": user_email}).eq("user_id", user_id).execute()
+        else:
+            # Create new record if somehow they exist in Auth but not here (Edge case)
+            supabase.table("user_stats").insert({
+                "user_id": user_id,
+                "email": user_email,
                 "prompt_count": 0
-            }
+            }).execute()
+
+        # Fetch fresh stats
+        response = supabase.table("user_stats").select("*").eq("user_id", user_id).execute()
         
         stats = response.data[0]
         return {

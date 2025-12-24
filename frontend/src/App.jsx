@@ -6,12 +6,14 @@ import Header from './components/Layout/Header';
 import ChatArea from './components/Layout/ChatArea';
 import LoginModal from './components/LoginModal';
 import Button from './components/UI/Button';
+import SettingsModal from './components/SettingsModal';
 
 export default function App() {
   const { messages, loading, sendMessage, limitReached, setLimitReached, promptCount, setPromptCount, setMessages } = UseChat();
   const [input, setInput] = useState('');
   const [session, setSession] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState({ isOpen: false, tab: 'general' });
 
   // Fetch user stats when session changes
   useEffect(() => {
@@ -76,9 +78,12 @@ export default function App() {
   const maxLimit = session ? 8 : 5;
 
   return (
-    <div className="flex h-screen bg-[#0F1016] text-white overflow-hidden font-sans">
+    <div className="flex h-screen bg-gray-50 dark:bg-[#0F1016] text-slate-900 dark:text-white overflow-hidden font-sans transition-colors duration-300">
       {/* Sidebar (Desktop) */}
-      <Sidebar onNewChat={handleNewChat} />
+      <Sidebar 
+        onNewChat={handleNewChat} 
+        onOpenSettings={() => setIsSettingsOpen({ isOpen: true, tab: 'general' })} 
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col relative w-full">
@@ -89,17 +94,18 @@ export default function App() {
             maxLimit={maxLimit}
             onLogin={handleLogin}
             onLogout={handleLogout}
+            onOpenProfile={() => setIsSettingsOpen({ isOpen: true, tab: 'profile' })}
         />
 
         <ChatArea messages={messages} loading={loading} />
 
         {/* Input Area */}
-        <div className="p-4 md:p-6 bg-[#0F1016]/95 backdrop-blur border-t border-white/5 z-10">
-          <div className="max-w-4xl mx-auto">
-              <div className="relative bg-[#1E1F2E] border border-white/10 rounded-2xl shadow-lg flex items-center p-2 focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all">
+        <div className="p-4 md:p-6 bg-white/80 dark:bg-[#0F1016]/95 backdrop-blur border-t border-gray-200 dark:border-white/5 z-10 transition-colors duration-300">
+          <div className="max-w-6xl mx-auto">
+              <div className="relative bg-gray-100 dark:bg-[#1E1F2E] border border-gray-200 dark:border-white/10 rounded-2xl shadow-lg flex items-center p-2 focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all">
                 <input
                     type="text"
-                    className="bg-transparent border-none outline-none flex-1 px-4 py-2 text-white placeholder-slate-500"
+                    className="bg-transparent border-none outline-none flex-1 px-4 py-2 text-slate-900 dark:text-white placeholder-slate-500"
                     placeholder="Message Lumina..."
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -133,6 +139,14 @@ export default function App() {
             onClose={() => setLimitReached(false)} 
             onLogin={handleLogin} 
             reason="limit" 
+            isGuest={!session}
+        />
+        <SettingsModal 
+            isOpen={isSettingsOpen.isOpen} 
+            onClose={() => setIsSettingsOpen({ isOpen: false, tab: 'general' })} 
+            initialTab={isSettingsOpen.tab}
+            session={session}
+            usageStats={{ promptCount: promptCount, isPremium: isPremium }}
         />
       </div>
     </div>
