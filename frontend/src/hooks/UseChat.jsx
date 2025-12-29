@@ -50,7 +50,7 @@ export const UseChat = () => {
   }, []);
 
   // 2. Send Message Function
-  const sendMessage = async (text, userToken = null, userEmail = "none", userId = "none") => {
+  const sendMessage = async (text, userToken = null, userEmail = "", userId = "") => {
     if (!text.trim()) return;
 
     // Add User Message to UI immediately
@@ -62,11 +62,15 @@ export const UseChat = () => {
       const headers = { 'Content-Type': 'application/json' };
       if (userToken) headers['Authorization'] = `Bearer ${userToken}`;
 
-      // Determine if we should send the email
-      let emailPayload = userEmail;
-      const emailSentKey = `email_sent_${userId}`;
+      // Determine payloads
+      let emailPayload = null;
+      let userIdPayload = null;
 
-      if (userId !== "none" && userId) {
+      if (userId && userId !== null) {
+        userIdPayload = userId;
+        emailPayload = userEmail;
+        
+        const emailSentKey = `email_sent_${userId}`;
         const hasSentEmail = localStorage.getItem(emailSentKey);
         if (hasSentEmail) {
           emailPayload = "none";
@@ -74,7 +78,7 @@ export const UseChat = () => {
       }
 
       // Single call to N8N Webhook (Handles DB & AI)
-      const WEBHOOK_URL = 'https://udaranew1.app.n8n.cloud/webhook-test/ca8535eb-2879-463a-ae06-d257efa6e205';
+      const WEBHOOK_URL = 'https://n8n-klmi.onrender.com/webhook-test/fb05eaf5-6e3b-4fef-bbc5-9636e16539e7';
       const systemPrompt = localStorage.getItem('systemPrompt');
 
       const response = await fetch(WEBHOOK_URL, {
@@ -87,7 +91,7 @@ export const UseChat = () => {
           system_instruction: systemPrompt,
           ip: ipAddress,
           email: emailPayload,
-          user_id: userId
+          user_id: userIdPayload
         }),
       });
       const textData = await response.text();
@@ -110,9 +114,10 @@ export const UseChat = () => {
           throw new Error(data.message || "Limit reached");
       }
 
-      if (data.status === "OK" || data.response) {
+      if (data.status === "OK" || data.response || data.status === "Email_Provided") {
           // Mark email as sent if we successfully sent it
           if (userId !== "none" && userId && emailPayload !== "none") {
+            const emailSentKey = `email_sent_${userId}`;
             localStorage.setItem(emailSentKey, 'true');
           }
 
@@ -122,8 +127,10 @@ export const UseChat = () => {
           }
           
           // Add AI Response
-          const aiContent = data.response || data.output || data.reply;
-          setMessages((prev) => [...prev, { role: 'ai', content: aiContent }]);
+          const aiContent = data.response || data.output || data.reply || data.message;
+          if (aiContent) {
+            setMessages((prev) => [...prev, { role: 'ai', content: aiContent }]);
+          }
       } else {
           console.warn("Unknown N8N response format:", data);
       }
