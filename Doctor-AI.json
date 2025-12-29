@@ -1,0 +1,636 @@
+{
+  "name": "Doctor-AI",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fb05eaf5-6e3b-4fef-bbc5-9636e16539e7",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "ea300733-af04-43b3-963b-a691d7c4ce7d",
+      "name": "Webhook",
+      "webhookId": "fb05eaf5-6e3b-4fef-bbc5-9636e16539e7"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "usage",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_id",
+              "keyValue": "={{ $json.session_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        176,
+        -96
+      ],
+      "id": "b42b5237-06a0-4ac5-9a2f-47c1658c633a",
+      "name": "Get a row",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "SLBSql3aEVQb1bZq",
+          "name": "Doc-AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ef707416-e1cb-431f-916d-f649ed0d917f",
+              "leftValue": "={{$node[\"Get a row\"].json.length === 0}}",
+              "rightValue": "=",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        336,
+        0
+      ],
+      "id": "b598daca-4cc6-4792-95f2-ed966725b637",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "tableId": "usage",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "session_id",
+              "fieldValue": "={{ $('Webhook').item.json.session_id }}"
+            },
+            {
+              "fieldId": "prompts_used",
+              "fieldValue": "0"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        496,
+        -112
+      ],
+      "id": "05d6264a-7245-4407-9a83-895de6273991",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "SLBSql3aEVQb1bZq",
+          "name": "Doc-AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "usage",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_id",
+              "keyValue": "={{ $('Webhook').first().json.session_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        656,
+        16
+      ],
+      "id": "dbd79c03-a79d-488d-9d86-aecd87f695e3",
+      "name": "Get a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "SLBSql3aEVQb1bZq",
+          "name": "Doc-AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ef707416-e1cb-431f-916d-f649ed0d917f",
+              "leftValue": "={{$json.prompts_used >= 5 && !$node[\"webhook\"].json.email}}",
+              "rightValue": "=",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        816,
+        16
+      ],
+      "id": "0f334891-d448-428c-977c-f4efd5efa847",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"EMAIL_REQUIRED\",\n  \"message\": \"Free limit reached. Please provide your email to continue.\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1008,
+        -112
+      ],
+      "id": "fb3d8162-060f-4f67-9189-3e53bfbed812",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ef707416-e1cb-431f-916d-f649ed0d917f",
+              "leftValue": "={{ $('Webhook').item.json.email }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "boolean",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1008,
+        80
+      ],
+      "id": "dad52611-12ba-4fb3-aacf-9c8c7836e805",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "tableId": "users_profile",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "email"
+            },
+            {
+              "fieldId": "name"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        0
+      ],
+      "id": "0d3b119f-1f9a-4ecb-8950-f9b46d533304",
+      "name": "Create a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "SLBSql3aEVQb1bZq",
+          "name": "Doc-AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook').item.json.prompt }}",
+        "options": {
+          "systemMessage": "=You are a wellness assistant.\nYou do not diagnose diseases.\nYou only suggest safe, commonly known home remedies.\nIf symptoms seem serious, advise consulting a professional.\nkeep the response to approximately 100 words\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1376,
+        176
+      ],
+      "id": "34bcd16f-8a0d-4407-ac31-66275076197a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        384
+      ],
+      "id": "8b3fb961-4436-4ff3-bfcb-6231799a8cb9",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "p76YLP5j7l1NTVYO",
+          "name": "Google Gemini(PaLM) Api account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "health_inputs",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "session_id",
+              "fieldValue": "={{ $('If2').item.json.session_id }}"
+            },
+            {
+              "fieldId": "prompt",
+              "fieldValue": "={{ $('Webhook').item.json.prompt }}"
+            },
+            {
+              "fieldId": "ai_response",
+              "fieldValue": "={{ $json.output }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        176
+      ],
+      "id": "c992d7b8-fb47-442e-8d29-3a2de624d4b6",
+      "name": "Create a row2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "SLBSql3aEVQb1bZq",
+          "name": "Doc-AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "usage",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.session_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "prompts_used",
+              "fieldValue": "={{$json.prompts_used + 1}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1984,
+        176
+      ],
+      "id": "2ca59cce-d1e3-4eb6-9f57-9ef1e15e433f",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "SLBSql3aEVQb1bZq",
+          "name": "Doc-AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"OK\",\n  \"response\": \"{{ $node['Create a row2'].json.ai_response.replace(/\\\"/g, '\\\\\\\"').replace(/\\n/g, '\\\\n') }}\",\n  \"prompts_used\": \"{{$json.prompts_used + 1}}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2160,
+        176
+      ],
+      "id": "de1d32ac-88c5-49e8-a585-55de75abb542",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1440,
+        384
+      ],
+      "id": "a96df675-508b-4857-a879-1be40248b243",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0adc1a96-f644-472e-9be4-2e31eacde297",
+              "name": "sessionId",
+              "value": "={{ $json.session_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        176
+      ],
+      "id": "f2a9c621-9476-46be-a474-3f55680e8548",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "usage",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_id",
+              "keyValue": "={{ $json.session_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        176
+      ],
+      "id": "57ffcdef-45ca-4246-a690-6029dcd327cc",
+      "name": "Get a row2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "SLBSql3aEVQb1bZq",
+          "name": "Doc-AI"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Get a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Create a row1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row1": {
+      "main": [
+        []
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create a row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row2": {
+      "main": [
+        [
+          {
+            "node": "Get a row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row2": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ee1c4059-a276-4aba-b5c8-a1411c3b5b07",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2eb59999b5ea1409fb1c471e3e3fb3d6161f1431d49218cd301fab2987c8cbb0"
+  },
+  "id": "osalUXKeO2jcDXz9",
+  "tags": []
+}

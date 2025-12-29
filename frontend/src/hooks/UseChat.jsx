@@ -9,6 +9,7 @@ export const UseChat = () => {
   const [sessionId, setSessionId] = useState(null);
   const [limitReached, setLimitReached] = useState(false);
   const [promptCount, setPromptCount] = useState(0); // Track usage 
+  const [ipAddress, setIpAddress] = useState(null);
 
   // 1. Initialize Fingerprint & Session on Mount
   useEffect(() => {
@@ -19,6 +20,12 @@ export const UseChat = () => {
       setFingerprint(result.visitorId);
     };
     setFp();
+
+    // Fetch IP
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => setIpAddress(data.ip))
+      .catch(err => console.error("IP Fetch Error:", err));
 
     // Session ID (Persist across refreshes)
     let storedSession = localStorage.getItem('chat_session_id');
@@ -43,7 +50,7 @@ export const UseChat = () => {
   }, []);
 
   // 2. Send Message Function
-  const sendMessage = async (text, userToken = null) => {
+  const sendMessage = async (text, userToken = null, userEmail = "none", userId = "none") => {
     if (!text.trim()) return;
 
     // Add User Message to UI immediately
@@ -55,8 +62,19 @@ export const UseChat = () => {
       const headers = { 'Content-Type': 'application/json' };
       if (userToken) headers['Authorization'] = `Bearer ${userToken}`;
 
+      // Determine if we should send the email
+      let emailPayload = userEmail;
+      const emailSentKey = `email_sent_${userId}`;
+
+      if (userId !== "none" && userId) {
+        const hasSentEmail = localStorage.getItem(emailSentKey);
+        if (hasSentEmail) {
+          emailPayload = "none";
+        }
+      }
+
       // Single call to N8N Webhook (Handles DB & AI)
-      const WEBHOOK_URL = 'https://n8n-klmi.onrender.com/webhook-test/fb05eaf5-6e3b-4fef-bbc5-9636e16539e7';
+      const WEBHOOK_URL = 'https://udaranew1.app.n8n.cloud/webhook-test/ca8535eb-2879-463a-ae06-d257efa6e205';
       const systemPrompt = localStorage.getItem('systemPrompt');
 
       const response = await fetch(WEBHOOK_URL, {
@@ -66,11 +84,24 @@ export const UseChat = () => {
           message: text,
           session_id: sessionId,
           fingerprint: fingerprint,
-          system_instruction: systemPrompt
+          system_instruction: systemPrompt,
+          ip: ipAddress,
+          email: emailPayload,
+          user_id: userId
         }),
       });
-
-      const data = await response.json();
+      const textData = await response.text();
+      console.log('Raw Webhook response:', textData);
+      
+      let data;
+      try {
+          data = JSON.parse(textData);
+      } catch (e) {
+          console.error("Failed to parse webhook JSON:", e);
+          throw new Error("Invalid response from server");
+      }
+      
+      console.log('Received N8N Data:', data); // Debugging log
 
       // Handle N8N Response Formats
       if (data.status === "EMAIL_REQUIRED") {
@@ -80,6 +111,11 @@ export const UseChat = () => {
       }
 
       if (data.status === "OK" || data.response) {
+          // Mark email as sent if we successfully sent it
+          if (userId !== "none" && userId && emailPayload !== "none") {
+            localStorage.setItem(emailSentKey, 'true');
+          }
+
           // Update prompt count
           if (data.prompts_used !== undefined) {
              setPromptCount(data.prompts_used);
@@ -94,9 +130,12 @@ export const UseChat = () => {
     
     } catch (error) {
       console.error("Chat error:", error);
+    } finally {
       setLoading(false);
     }
   };
 
   return { messages, loading, sendMessage, limitReached, setLimitReached, promptCount, setPromptCount, setMessages };
 };
+
+

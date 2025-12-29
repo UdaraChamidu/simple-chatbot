@@ -54,7 +54,9 @@ export default function App() {
 
   const handleSend = () => {
     if (!input.trim()) return;
-    sendMessage(input, session?.access_token);
+    const email = session?.user?.email || "none";
+    const userId = session?.user?.id || "none";
+    sendMessage(input, session?.access_token, email, userId);
     setInput('');
   };
 
