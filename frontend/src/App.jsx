@@ -9,11 +9,13 @@ import Button from './components/UI/Button';
 import SettingsModal from './components/SettingsModal';
 
 export default function App() {
-  const { messages, loading, sendMessage, limitReached, setLimitReached, promptCount, setPromptCount, setMessages } = UseChat();
+  const { messages, loading, sendMessage, submitEmail, limitReached, setLimitReached, promptCount, setPromptCount, setMessages } = UseChat();
   const [input, setInput] = useState('');
   const [session, setSession] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState({ isOpen: false, tab: 'general' });
+
+  const [manualEmail, setManualEmail] = useState(() => localStorage.getItem('guest_email') || null);
 
   // Fetch user stats when session changes
   // Fetch user stats when session changes (DISABLED: N8N manages DB/Logic)
@@ -54,13 +56,27 @@ export default function App() {
 
   const handleSend = () => {
     if (!input.trim()) return;
-    const email = session?.user?.email || "none";
+    const email = session?.user?.email || manualEmail || "none";
     const userId = session?.user?.id || "none";
+    
+    // If we have a manual email but no userId, we are still anonymous but identified by email
     sendMessage(input, session?.access_token, email, userId);
     setInput('');
   };
 
-  const handleLogin = async () => {
+  const handleLogin = async (emailInput = null) => {
+    // If emailInput is provided, it's a manual guest email submission
+    if (typeof emailInput === 'string' && emailInput.includes('@')) {
+        setManualEmail(emailInput);
+        localStorage.setItem('guest_email', emailInput);
+        setLimitReached(false);
+        
+        // Immediate N8N Submission
+        submitEmail(emailInput);
+        return;
+    }
+
+    // Otherwise, standard Google Login
     await Supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin }
@@ -145,6 +161,7 @@ export default function App() {
             onLogin={handleLogin} 
             reason="limit" 
             isGuest={!session}
+            hasEmail={!!(session?.user?.email || manualEmail)}
         />
         <SettingsModal 
             isOpen={isSettingsOpen.isOpen} 

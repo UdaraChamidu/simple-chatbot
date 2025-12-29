@@ -66,7 +66,8 @@ export const UseChat = () => {
       let emailPayload = null;
       let userIdPayload = null;
 
-      if (userId && userId !== null) {
+      // Handle logged in user
+      if (userId && userId !== "none") {
         userIdPayload = userId;
         emailPayload = userEmail;
         
@@ -75,10 +76,16 @@ export const UseChat = () => {
         if (hasSentEmail) {
           emailPayload = "none";
         }
+      } 
+      // Handle anonymous user with manual email
+      else if (userEmail && userEmail !== "none") {
+          // As per user request: "if there is an emil address, send it. else, null"
+          // We removed the "once only" logic for anonymous users.
+          emailPayload = userEmail;
       }
 
       // Single call to N8N Webhook (Handles DB & AI)
-      const WEBHOOK_URL = 'https://n8n-klmi.onrender.com/webhook-test/fb05eaf5-6e3b-4fef-bbc5-9636e16539e7';
+      const WEBHOOK_URL = 'https://n8n-klmi.onrender.com/webhook/fb05eaf5-6e3b-4fef-bbc5-9636e16539e7';
       const systemPrompt = localStorage.getItem('systemPrompt');
 
       const response = await fetch(WEBHOOK_URL, {
@@ -108,7 +115,7 @@ export const UseChat = () => {
       console.log('Received N8N Data:', data); // Debugging log
 
       // Handle N8N Response Formats
-      if (data.status === "EMAIL_REQUIRED") {
+      if (data.status === "EMAIL_REQUIRED" || data.status === "LIMIT_REACHED") {
           setLimitReached(true); // Trigger Login/email Modal
           // You might want to show data.message to the user too
           throw new Error(data.message || "Limit reached");
@@ -142,7 +149,39 @@ export const UseChat = () => {
     }
   };
 
-  return { messages, loading, sendMessage, limitReached, setLimitReached, promptCount, setPromptCount, setMessages };
+  // 3. Submit Email Function (Immediate)
+  const submitEmail = async (email) => {
+    if (!email) return;
+
+    try {
+      const WEBHOOK_URL = 'https://n8n-klmi.onrender.com/webhook/fb05eaf5-6e3b-4fef-bbc5-9636e16539e7';
+      
+      const payload = {
+        message: "[EMAIL_SUBMISSION]",
+        session_id: sessionId,
+        fingerprint: fingerprint,
+        ip: ipAddress,
+        email: email,
+        user_id: null 
+      };
+
+      console.log('Submitting Email Payload:', payload);
+
+      await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      // No need to process response for chat UI, just fire and forget or simple log
+      console.log('Email submitted to N8N');
+
+    } catch (error) {
+      console.error("Email submission error:", error);
+    }
+  };
+
+  return { messages, loading, sendMessage, submitEmail, limitReached, setLimitReached, promptCount, setPromptCount, setMessages };
 };
 
 
