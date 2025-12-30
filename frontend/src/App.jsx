@@ -30,6 +30,19 @@ export default function App() {
 
   // ... (lines 28-65 unchanged)
 
+  // Ensure correct limit type is shown if backend triggers limit
+  useEffect(() => {
+    if (limitReached) {
+        const hasEmail = !!(session?.user?.email || manualEmail);
+        console.log('[App] Limit reached triggered. Identified:', hasEmail);
+        if (hasEmail) {
+            setLimitType('final');
+        } else {
+            setLimitType('guest');
+        }
+    }
+  }, [limitReached, session, manualEmail]);
+
   const handleSend = async () => {
     if (!input.trim()) return;
     
