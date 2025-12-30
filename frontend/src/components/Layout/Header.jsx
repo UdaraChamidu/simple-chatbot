@@ -42,7 +42,7 @@ export default function Header({ session, manualEmail, isPremium, promptCount, m
                           <div className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold tracking-wide uppercase">{isPremium ? 'PRO Account' : 'Free Plan'}</div>
                       </div>
                    </div>
-                   {session && <Button variant="ghost" className="!px-3 !py-1.5 text-xs border border-gray-200 dark:border-white/5 text-slate-600 dark:text-white" onClick={onLogout}>Sign Out</Button>}
+                   {userEmail && <Button variant="ghost" className="!px-3 !py-1.5 text-xs border border-gray-200 dark:border-white/5 text-slate-600 dark:text-white" onClick={onLogout}>Sign Out</Button>}
                 </div>
             </>
         )}

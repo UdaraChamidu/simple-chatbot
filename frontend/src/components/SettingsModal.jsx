@@ -126,8 +126,7 @@ export default function SettingsModal({ isOpen, onClose, initialTab = 'general',
                         </Button>
                     </div>
                 </div>
-            )}
-
+            )}  
         </div>
       </GlassCard>
     </div>

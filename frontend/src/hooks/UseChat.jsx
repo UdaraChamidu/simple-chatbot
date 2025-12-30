@@ -62,25 +62,20 @@ export const UseChat = () => {
       if (userToken) headers['Authorization'] = `Bearer ${userToken}`;
 
       // Determine payloads
-      let emailPayload = null;
+      let emailPayload = null; // Default to null, as email is submitted once via submitEmail
       let userIdPayload = null;
 
       // Handle logged in user
       if (userId && userId !== "none") {
         userIdPayload = userId;
-        emailPayload = userEmail;
-        
-        const emailSentKey = `email_sent_${userId}`;
-        const hasSentEmail = localStorage.getItem(emailSentKey);
-        if (hasSentEmail) {
-          emailPayload = "none";
-        }
+        // emailPayload = userEmail; // DISABLED: We don't send email with every message anymore
       } 
       // Handle anonymous user with manual email
       else if (userEmail && userEmail !== "none") {
-          // As per user request: "if there is an emil address, send it. else, null"
-          // We removed the "once only" logic for anonymous users.
-          emailPayload = userEmail;
+          // DISABLED: As per user request, we only send email ONCE via submitEmail.
+          // Subsequent regular messages do NOT need to contain the email.
+          // emailPayload = userEmail; 
+          emailPayload = null;
       }
 
       // Single call to N8N Webhook (Handles DB & AI)

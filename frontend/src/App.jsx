@@ -119,6 +119,8 @@ export default function App() {
 
   const handleLogout = async () => {
     await Supabase.auth.signOut();
+    localStorage.removeItem('guest_email'); // Clear manual email
+    setManualEmail(null);
     setSession(null);
     // Optional: clear chat on logout
     window.location.reload(); 
