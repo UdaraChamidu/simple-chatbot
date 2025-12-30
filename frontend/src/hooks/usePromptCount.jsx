@@ -6,15 +6,16 @@ import { Supabase } from '../lib/Supabase';
  * - For guests: fetches from guest_tracking table by fingerprint
  * - For logged-in users: fetches from user_stats table by user_id
  */
-export const usePromptCount = (fingerprint, userId, session) => {
+export const usePromptCount = (fingerprint, userId, session, manualEmail) => {
   const [promptCount, setPromptCount] = useState(0);
   const [maxPrompts, setMaxPrompts] = useState(5); // Default for guests
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [retrievedUserId, setRetrievedUserId] = useState(null);
 
   const fetchPromptCount = async () => {
-    if (!fingerprint && !userId) {
-      console.log('[usePromptCount] No fingerprint or userId yet, skipping fetch');
+    if (!fingerprint && !userId && !manualEmail) {
+      console.log('[usePromptCount] No identity found yet, skipping fetch');
       setLoading(false);
       return;
     }
@@ -23,45 +24,57 @@ export const usePromptCount = (fingerprint, userId, session) => {
       setLoading(true);
       setError(null);
 
-      // Logged-in user: fetch from user_stats
+      // 1. Logged-in user: fetch from user_stats (Highest Priority)
       if (session && userId) {
         console.log('[usePromptCount] Fetching for logged-in user:', userId);
-        setMaxPrompts(8); // Logged-in users get 8 prompts
+        setMaxPrompts(8);
+        setRetrievedUserId(userId);
 
         const { data, error: supabaseError } = await Supabase
           .from('user_stats')
           .select('prompt_count')
           .eq('user_id', userId)
-          .maybeSingle(); // Use maybeSingle() to handle no results gracefully
+          .maybeSingle();
 
-        if (supabaseError) {
-          console.error('[usePromptCount] Supabase error (user_stats):', supabaseError);
-          throw supabaseError;
-        }
-
-        const count = data?.prompt_count || 0;
-        console.log('[usePromptCount] User prompt count:', count);
-        setPromptCount(count);
+        if (supabaseError) throw supabaseError;
+        setPromptCount(data?.prompt_count || 0);
       } 
-      // Guest user: fetch from guest_tracking
+      // 2. Manual Email user: fetch from user_stats by email (Medium Priority)
+      else if (manualEmail) {
+         console.log('[usePromptCount] Fetching for manual email:', manualEmail);
+         setMaxPrompts(8); // Upgrade limit for email users
+         
+         const { data, error: supabaseError } = await Supabase
+          .from('user_stats')
+          .select('prompt_count, user_id')
+          .eq('email', manualEmail)
+          .maybeSingle();
+         
+         if (supabaseError) throw supabaseError;
+         
+         if (data) {
+             setPromptCount(data.prompt_count || 0);
+             if (data.user_id) setRetrievedUserId(data.user_id);
+         } else {
+             // If manual email provided but not in DB yet (edge case, usually N8N creates it, but maybe latency)
+             // We might want to default to 0.
+             setPromptCount(0);
+         }
+      }
+      // 3. Guest user: fetch from guest_tracking (Lowest Priority)
       else if (fingerprint) {
         console.log('[usePromptCount] Fetching for guest with fingerprint:', fingerprint);
-        setMaxPrompts(5); // Guests get 5 prompts
+        setMaxPrompts(5);
+        setRetrievedUserId(null);
 
         const { data, error: supabaseError } = await Supabase
           .from('guest_tracking')
           .select('prompt_count')
           .eq('fingerprint_id', fingerprint)
-          .maybeSingle(); // Use maybeSingle() to handle no results gracefully
+          .maybeSingle();
 
-        if (supabaseError) {
-          console.error('[usePromptCount] Supabase error (guest_tracking):', supabaseError);
-          throw supabaseError;
-        }
-
-        const count = data?.prompt_count || 0;
-        console.log('[usePromptCount] Guest prompt count:', count);
-        setPromptCount(count);
+        if (supabaseError) throw supabaseError;
+        setPromptCount(data?.prompt_count || 0);
       }
     } catch (err) {
       console.error('[usePromptCount] Error fetching prompt count:', err);
@@ -72,25 +85,27 @@ export const usePromptCount = (fingerprint, userId, session) => {
     }
   };
 
-  // Fetch on mount and when fingerprint/userId changes
+  // Fetch on mount and when dependencies change
   useEffect(() => {
     fetchPromptCount();
 
-    // Set up real-time subscription to automatically update count
+    // Set up real-time subscription
     let subscription = null;
 
-    if (session && userId) {
-      // Subscribe to user_stats changes for logged-in users
-      console.log('[usePromptCount] Setting up real-time subscription for user:', userId);
+    const targetUserId = userId || retrievedUserId;
+
+    if ((session && targetUserId) || (manualEmail && targetUserId)) {
+      // Subscribe to user_stats changes for established users
+      console.log('[usePromptCount] Setting up real-time subscription for user:', targetUserId);
       subscription = Supabase
-        .channel(`user_stats_${userId}`)
+        .channel(`user_stats_${targetUserId}`)
         .on(
           'postgres_changes',
           {
             event: '*',
             schema: 'public',
             table: 'user_stats',
-            filter: `user_id=eq.${userId}`
+            filter: `user_id=eq.${targetUserId}`
           },
           (payload) => {
             console.log('[usePromptCount] Real-time update received:', payload);
@@ -100,8 +115,30 @@ export const usePromptCount = (fingerprint, userId, session) => {
           }
         )
         .subscribe();
-    } else if (fingerprint) {
-      // Subscribe to guest_tracking changes for guests
+    } else if (manualEmail && !targetUserId) {
+        // Subscribe to user_stats creation for this email (Race condition handling)
+        console.log('[usePromptCount] Watching for user creation via email:', manualEmail);
+        subscription = Supabase
+        .channel(`user_stats_creation_${manualEmail}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'user_stats',
+            filter: `email=eq.${manualEmail}`
+          },
+          (payload) => {
+            console.log('[usePromptCount] User created/found via Real-time:', payload);
+            if (payload.new) {
+                if (payload.new.prompt_count !== undefined) setPromptCount(payload.new.prompt_count);
+                if (payload.new.user_id) setRetrievedUserId(payload.new.user_id);
+            }
+          }
+        )
+        .subscribe();
+    } else if (fingerprint && !manualEmail) {
+      // Subscribe to guest_tracking changes
       console.log('[usePromptCount] Setting up real-time subscription for fingerprint:', fingerprint);
       subscription = Supabase
         .channel(`guest_tracking_${fingerprint}`)
@@ -123,20 +160,17 @@ export const usePromptCount = (fingerprint, userId, session) => {
         .subscribe();
     }
 
-    // Cleanup subscription on unmount or when dependencies change
     return () => {
-      if (subscription) {
-        console.log('[usePromptCount] Cleaning up subscription');
-        Supabase.removeChannel(subscription);
-      }
+      if (subscription) Supabase.removeChannel(subscription);
     };
-  }, [fingerprint, userId, session]);
+  }, [fingerprint, userId, session, manualEmail, retrievedUserId]); // Added retrievedUserId to dependencies
 
   return {
     promptCount,
     maxPrompts,
     loading,
     error,
+    userId: retrievedUserId, // Return the resolve User ID
     refetchPromptCount: fetchPromptCount
   };
 };

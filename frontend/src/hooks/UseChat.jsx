@@ -62,20 +62,18 @@ export const UseChat = () => {
       if (userToken) headers['Authorization'] = `Bearer ${userToken}`;
 
       // Determine payloads
-      let emailPayload = null; // Default to null, as email is submitted once via submitEmail
+      let emailPayload = null;
       let userIdPayload = null;
 
-      // Handle logged in user
+      // Handle logged in user or manual user with ID resolved
       if (userId && userId !== "none") {
         userIdPayload = userId;
-        // emailPayload = userEmail; // DISABLED: We don't send email with every message anymore
+        // emailPayload = null; // ID is sufficient, no email needed
       } 
-      // Handle anonymous user with manual email
+      // Handle anonymous user with manual email BUT ID not yet resolved (Transitional State)
+      // We MUST send email here, otherwise N8N doesn't know who this is (since ID is missing)
       else if (userEmail && userEmail !== "none") {
-          // DISABLED: As per user request, we only send email ONCE via submitEmail.
-          // Subsequent regular messages do NOT need to contain the email.
-          // emailPayload = userEmail; 
-          emailPayload = null;
+          emailPayload = userEmail;
       }
 
       // Single call to N8N Webhook (Handles DB & AI)

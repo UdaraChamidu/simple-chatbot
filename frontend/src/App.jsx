@@ -20,48 +20,15 @@ export default function App() {
   const [limitType, setLimitType] = useState('guest'); // 'guest' | 'final'
 
   // Fetch prompt count from Supabase with real-time updates
-  const { promptCount, maxPrompts, loading: countLoading } = usePromptCount(
+  // Fetch prompt count from Supabase with real-time updates
+  const { promptCount, maxPrompts, loading: countLoading, userId: fetchedUserId } = usePromptCount(
     fingerprint,
     session?.user?.id,
-    session
+    session,
+    manualEmail
   );
 
-  // Fetch user stats when session changes
-  // Fetch user stats when session changes (DISABLED: N8N manages DB/Logic)
-  /*
-  useEffect(() => {
-    if (session?.access_token) {
-      fetch('http://localhost:8000/api/user/stats', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
-      })
-      .then(res => res.json())
-      .then(data => {
-        setIsPremium(data.is_premium || false);
-        setPromptCount(data.prompt_count || 0);
-      })
-      .catch(err => {
-        console.error('Failed to fetch user stats:', err);
-        setIsPremium(false);
-      });
-    }
-  }, [session, setPromptCount]);
-  */
-
-  useEffect(() => {
-    Supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) setLimitReached(false);
-    });
-
-    const { data: { subscription } } = Supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) setLimitReached(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [setLimitReached]);
+  // ... (lines 28-65 unchanged)
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -87,7 +54,7 @@ export default function App() {
     }
     
     const email = session?.user?.email || manualEmail || "none";
-    const userId = session?.user?.id || "none";
+    const userId = session?.user?.id || fetchedUserId || "none"; // Use fetched user ID from DB for manual email users
     
     // If we have a manual email but no userId, we are still anonymous but identified by email
     await sendMessage(input, session?.access_token, email, userId);
