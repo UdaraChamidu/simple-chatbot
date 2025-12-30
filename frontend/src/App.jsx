@@ -180,6 +180,8 @@ export default function App() {
             onClose={() => setIsSettingsOpen({ isOpen: false, tab: 'general' })} 
             initialTab={isSettingsOpen.tab}
             session={session}
+            manualEmail={manualEmail}
+            userId={session?.user?.id || fetchedUserId}
             usageStats={{ promptCount: promptCount, isPremium: isPremium }}
         />
       </div>

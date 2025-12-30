@@ -15,6 +15,9 @@ export default function Header({ session, manualEmail, isPremium, promptCount, m
         <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
           Lumina AI
         </h1>
+        <div className="text-[10px] font-mono bg-indigo-500/10 text-indigo-500 px-2 py-0.5 rounded-full border border-indigo-500/20 ml-2">
+            Beta v1.0
+        </div>
       </div>
 
       {/* Right Actions */}

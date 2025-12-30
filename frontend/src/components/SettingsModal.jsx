@@ -3,22 +3,23 @@ import GlassCard from './UI/GlassCard';
 import Button from './UI/Button';
 import { useTheme } from '../hooks/useTheme';
 
-export default function SettingsModal({ isOpen, onClose, initialTab = 'general', session, usageStats }) {
+export default function SettingsModal({ isOpen, onClose, initialTab = 'general', session, manualEmail, userId, usageStats }) {
   if (!isOpen) return null;
   const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState(initialTab);
 
+  const userEmail = session?.user?.email || manualEmail;
+
   // Tabs config
   const tabs = [
-    { id: 'profile', label: 'My Profile', icon: '👤', hidden: !session },
+    { id: 'profile', label: 'My Profile', icon: '👤', hidden: !userEmail },
     { id: 'general', label: 'General', icon: '⚙️' },
-    { id: 'chat', label: 'Chat', icon: '💬' },
     { id: 'data', label: 'Data', icon: '🛡️' }
   ].filter(t => !t.hidden);
   
   // Safe stats
   const count = usageStats?.promptCount || 0;
-  const max = session ? 8 : 5;
+  const max = userEmail ? 8 : 5;
   const progress = Math.min((count / max) * 100, 100);
 
   return (
@@ -54,32 +55,41 @@ export default function SettingsModal({ isOpen, onClose, initialTab = 'general',
             </button>
 
             {/* PROFILE TAB */}
-            {activeTab === 'profile' && session && (
+            {activeTab === 'profile' && userEmail && (
                  <div className="space-y-6 animate-fadeIn">
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white border-b border-gray-200 dark:border-white/10 pb-2">My Profile</h3>
                     
                     <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-full border-2 border-indigo-500/20 overflow-hidden shadow-lg">
-                             {session.user?.user_metadata?.avatar_url ? (
+                             {session?.user?.user_metadata?.avatar_url ? (
                                  <img src={session.user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                              ) : (
                                  <div className="w-full h-full bg-indigo-500 text-white flex items-center justify-center text-xl font-bold">
-                                     {session.user.email?.[0].toUpperCase()}
+                                     {userEmail[0].toUpperCase()}
                                  </div>
                              )}
                         </div>
                         <div>
-                            <div className="text-xl font-bold text-slate-900 dark:text-white">{session.user.user_metadata?.full_name || 'User'}</div>
-                            <div className="text-sm text-slate-500 dark:text-slate-400">{session.user.email}</div>
+                            <div className="text-xl font-bold text-slate-900 dark:text-white">{session?.user?.user_metadata?.full_name || 'User'}</div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">{userEmail}</div>
                             <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 uppercase tracking-wide">
                                 {usageStats?.isPremium ? 'PRO Account' : 'Free Plan'}
                             </div>
                         </div>
                     </div>
 
+                    <div className="bg-white/50 dark:bg-white/5 rounded-xl p-4 border border-gray-200 dark:border-white/5 space-y-3">
+                         <div>
+                            <div className="text-[10px] uppercase text-slate-500 font-bold tracking-wider mb-1">User ID</div>
+                            <div className="font-mono text-xs bg-gray-100 dark:bg-black/20 p-2 rounded border border-gray-200 dark:border-white/5 text-slate-700 dark:text-slate-300 select-all">
+                                {userId || 'Loading...'}
+                            </div>
+                         </div>
+                    </div>
+
                     <div className="bg-white/50 dark:bg-white/5 rounded-xl p-4 border border-gray-200 dark:border-white/5">
                         <div className="flex justify-between text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">
-                             <span>Monthly Usage</span>
+                             <span>Current Usage</span>
                              <span>{count} / {max} Prompts</span>
                         </div>
                         <div className="h-2 w-full bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">

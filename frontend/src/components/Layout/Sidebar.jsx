@@ -20,10 +20,7 @@ export default function Sidebar({ onNewChat, onOpenSettings }) {
              <Button onClick={onNewChat} variant="primary" className="w-full justify-center shadow-none bg-white/5 hover:bg-white/10 border border-white/5">
                 + New Chat
              </Button>
-             <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors group">
-                <span className="group-hover:scale-110 transition-transform">🧭</span>
-                <span className="text-sm font-medium">Explore Prompts</span>
-             </div>
+             
          </div>
       </div>
 
@@ -31,7 +28,7 @@ export default function Sidebar({ onNewChat, onOpenSettings }) {
          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-2 mb-2 block">Recent Chats</span>
          <div className="flex items-center justify-center h-32 text-center">
             <div className="text-sm text-slate-500 italic px-4">
-               History is locally stored in this session
+               Your chat history will be shown here
             </div>
          </div>
       </div>
