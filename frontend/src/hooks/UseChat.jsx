@@ -77,7 +77,7 @@ export const UseChat = () => {
       }
 
       // Single call to N8N Webhook (Handles DB & AI)
-      const WEBHOOK_URL = 'https://n8n-klmi.onrender.com/webhook/fb05eaf5-6e3b-4fef-bbc5-9636e16539e7';
+      const WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL;
       const systemPrompt = localStorage.getItem('systemPrompt');
 
       const response = await fetch(WEBHOOK_URL, {
@@ -141,7 +141,7 @@ export const UseChat = () => {
     if (!email) return;
 
     try {
-      const WEBHOOK_URL = 'https://n8n-klmi.onrender.com/webhook/fb05eaf5-6e3b-4fef-bbc5-9636e16539e7';
+      const WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL;
       
       const payload = {
         message: "[EMAIL_SUBMISSION]",

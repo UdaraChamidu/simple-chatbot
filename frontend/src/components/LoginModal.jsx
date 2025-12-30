@@ -32,7 +32,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, limitType = 'gues
           {isFinalLimit 
              ? "This is a beta version. We are working on premium plans. Stay tuned!"
              : (isGuestLimit
-                ? "You've used your 5 free guest prompts. Sign in with Google to get 3 more prompts!"
+                ? "You've used your 5 free guest prompts. Sign in with Email to get 3 more prompts!"
                 : "Please sign in to access this feature.")
           }
         </p>
