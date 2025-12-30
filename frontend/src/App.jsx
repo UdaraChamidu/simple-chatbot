@@ -17,6 +17,7 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState({ isOpen: false, tab: 'general' });
 
   const [manualEmail, setManualEmail] = useState(() => localStorage.getItem('guest_email') || null);
+  const [limitType, setLimitType] = useState('guest'); // 'guest' | 'final'
 
   // Fetch prompt count from Supabase with real-time updates
   const { promptCount, maxPrompts, loading: countLoading } = usePromptCount(
@@ -72,6 +73,7 @@ export default function App() {
     // Guest without email: max 5 prompts
     if (isGuest && !manualEmail && promptCount >= 5) {
       console.log('[App] Guest limit reached (5 prompts), showing email modal');
+      setLimitType('guest');
       setLimitReached(true);
       return;
     }
@@ -79,6 +81,7 @@ export default function App() {
     // User with email (manual or logged in): max 8 prompts
     if (hasEmailProvided && promptCount >= 8) {
       console.log('[App] Final limit reached (8 prompts), showing beta modal');
+      setLimitType('final');
       setLimitReached(true);
       return;
     }
@@ -187,9 +190,7 @@ export default function App() {
             isOpen={limitReached} 
             onClose={() => setLimitReached(false)} 
             onLogin={handleLogin} 
-            reason="limit" 
-            isGuest={!session}
-            hasEmail={!!(session?.user?.email || manualEmail)}
+            limitType={limitType}
         />
         <SettingsModal 
             isOpen={isSettingsOpen.isOpen} 

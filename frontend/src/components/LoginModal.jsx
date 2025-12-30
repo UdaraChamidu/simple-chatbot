@@ -2,16 +2,14 @@ import React from 'react';
 import GlassCard from './UI/GlassCard';
 import Button from './UI/Button';
 
-export default function LoginModal({ isOpen, onClose, onLogin, reason, isGuest = true, hasEmail = false }) {
+export default function LoginModal({ isOpen, onClose, onLogin, limitType = 'guest' }) {
   if (!isOpen) return null;
 
-  // Determine which limit was reached
-  // Guest without email: 5 prompts → ask for email
-  // User with email (manual or Google): 8 prompts → show beta message
-  const isFinalLimit = reason === 'limit' && hasEmail; // Has email and hit limit = 8 prompts reached
-  const isGuestLimit = reason === 'limit' && isGuest && !hasEmail; // Guest without email = 5 prompts reached
+  // Determine which limit was reached based on explicit limitType passed from parent
+  const isFinalLimit = limitType === 'final';
+  const isGuestLimit = limitType === 'guest';
   
-  console.log('[LoginModal] isGuest:', isGuest, 'hasEmail:', hasEmail, 'isFinalLimit:', isFinalLimit, 'isGuestLimit:', isGuestLimit);
+  console.log('[LoginModal] limitType:', limitType);
   
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fadeIn">
@@ -25,8 +23,8 @@ export default function LoginModal({ isOpen, onClose, onLogin, reason, isGuest =
         
         <h2 className="relative text-2xl font-bold text-slate-900 dark:text-white mb-3">
           {isFinalLimit
-            ? 'Premium Limit Reached' 
-            : (isGuestLimit ? 'Guest Limit Reached' : 'Sign In Required')
+            ? 'Beta Limit Reached' 
+            : (isGuestLimit ? 'Free Limit Reached' : 'Sign In Required')
           }
         </h2>
         
@@ -34,55 +32,57 @@ export default function LoginModal({ isOpen, onClose, onLogin, reason, isGuest =
           {isFinalLimit 
              ? "This is a beta version. We are working on premium plans. Stay tuned!"
              : (isGuestLimit
-                ? "Free limit reached. Please provide your email to continue and get 3 more free prompts."
+                ? "You've used your 5 free guest prompts. Sign in with Google to get 3 more prompts!"
                 : "Please sign in to access this feature.")
           }
         </p>
-
-        {/* Email Input for Guest Limit (Only if not final limit) */}
-        {isGuestLimit && (
-           <div className="mb-6 space-y-3">
-              <input 
-                type="email" 
-                placeholder="Enter your email" 
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-slate-900 dark:text-white placeholder-slate-500"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const email = e.target.value;
-                    if (email && email.includes('@')) {
-                       onLogin(email); // Re-using onLogin to pass email for now, or we can use a new prop
-                    }
-                  }
-                }}
-                id="manual-email-input"
-              />
-              <Button 
-                onClick={() => {
-                   const emailInput = document.getElementById('manual-email-input');
-                   if (emailInput && emailInput.value && emailInput.value.includes('@')) {
-                      onLogin(emailInput.value);
-                   }
-                }} 
-                className="relative w-full justify-center py-3 text-lg font-semibold shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700 text-white"
-              >
-                Continue with Email
-              </Button>
-              <div className="relative flex items-center gap-4 py-2">
-                 <div className="flex-1 h-px bg-slate-200 dark:bg-white/10"></div>
-                 <span className="text-xs text-slate-400 font-medium">OR</span>
-                 <div className="flex-1 h-px bg-slate-200 dark:bg-white/10"></div>
-              </div>
-           </div>
-        )}
 
         {isFinalLimit ? (
             <Button disabled className="relative w-full justify-center py-3 text-lg font-semibold opacity-80 cursor-not-allowed bg-slate-700 text-slate-300">
                Premium Coming Soon...
             </Button>
         ) : (
-            <Button onClick={() => onLogin()} className="relative w-full justify-center py-3 text-lg font-semibold shadow-indigo-500/20">
-               Sign in with Google
-            </Button>
+            <>
+                <Button onClick={() => onLogin()} className="relative w-full justify-center py-3 text-lg font-semibold shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700 text-white">
+                   Sign in with Google
+                </Button>
+
+                {isGuestLimit && (
+                   <div className="mt-6 space-y-3">
+                      <div className="relative flex items-center gap-4 py-2 mb-2">
+                         <div className="flex-1 h-px bg-slate-200 dark:bg-white/10"></div>
+                         <span className="text-xs text-slate-400 font-medium">OR</span>
+                         <div className="flex-1 h-px bg-slate-200 dark:bg-white/10"></div>
+                      </div>
+                      
+                      <input 
+                        type="email" 
+                        placeholder="Enter your email" 
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-slate-900 dark:text-white placeholder-slate-500"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const email = e.target.value;
+                            if (email && email.includes('@')) {
+                               onLogin(email);
+                            }
+                          }
+                        }}
+                        id="manual-email-input"
+                      />
+                      <Button 
+                        onClick={() => {
+                           const emailInput = document.getElementById('manual-email-input');
+                           if (emailInput && emailInput.value && emailInput.value.includes('@')) {
+                              onLogin(emailInput.value);
+                           }
+                        }} 
+                        className="relative w-full justify-center py-3 text-lg font-semibold border border-indigo-500/30 hover:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                      >
+                        Continue with Email
+                      </Button>
+                   </div>
+                )}
+            </>
         )}
 
         <button 
