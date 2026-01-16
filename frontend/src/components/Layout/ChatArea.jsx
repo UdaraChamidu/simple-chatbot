@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 
-export default function ChatArea({ messages, loading }) {
+export default function ChatArea({ messages, loading, onSend }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -8,11 +8,34 @@ export default function ChatArea({ messages, loading }) {
   }, [messages, loading]);
 
   if (messages.length === 0) {
+      const sampleQuestions = [
+          "What are the early symptoms of diabetes?",
+          "How can I relieve a migraine naturally?",
+          "What is the best diet for high blood pressure?",
+          "How much water should I drink daily?",
+          "What are the side effects of antibiotics?"
+      ];
+
       return (
-          <div className="flex-1 flex items-center justify-center flex-col text-center p-8 opacity-50">
-             <div className="text-6xl mb-6 grayscale hover:grayscale-0 transition-all duration-500 transform hover:scale-110 cursor-pointer">✨</div>
-             <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Welcome to Lumina</h3>
-             <p className="text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">Start a conversation to experience the power of AI with our premium interface.</p>
+          <div className="flex-1 flex items-center justify-center flex-col text-center p-8 opacity-90 animate-fadeIn">
+             <div className="text-6xl mb-6 grayscale hover:grayscale-0 transition-all duration-500 transform hover:scale-110 cursor-pointer">🩺</div>
+             <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-violet-500 mb-3">Lumina Health Assistant</h3>
+             <p className="text-slate-500 dark:text-slate-400 max-w-lg leading-relaxed mb-8">
+                Your AI companion for medical insights and health advice. 
+                Ask me anything about symptoms, treatments, or general wellness.
+             </p>
+
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-w-4xl w-full">
+                {sampleQuestions.map((q, idx) => (
+                    <button 
+                        key={idx}
+                        onClick={() => onSend && onSend(q)}
+                        className="px-4 py-3 bg-white dark:bg-[#1E1F2E] border border-gray-200 dark:border-white/5 rounded-xl text-sm text-slate-700 dark:text-slate-300 hover:border-indigo-500 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md text-left"
+                    >
+                        {q}
+                    </button>
+                ))}
+             </div>
           </div>
       )
   }

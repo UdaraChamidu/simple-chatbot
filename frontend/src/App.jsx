@@ -43,8 +43,11 @@ export default function App() {
     }
   }, [limitReached, session, manualEmail]);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
+  const handleSend = async (text = null) => {
+    // If text is provided (from sample questions), use it. Otherwise use input state.
+    const messageContent = typeof text === 'string' ? text : input;
+    
+    if (!messageContent?.trim()) return;
     
     // Check limits before sending
     const isGuest = !session;
@@ -70,8 +73,12 @@ export default function App() {
     const userId = session?.user?.id || fetchedUserId || "none"; // Use fetched user ID from DB for manual email users
     
     // If we have a manual email but no userId, we are still anonymous but identified by email
-    await sendMessage(input, session?.access_token, email, userId);
-    setInput('');
+    await sendMessage(messageContent, session?.access_token, email, userId);
+    
+    // Only clear input if we sent from the input field
+    if (!text) {
+        setInput('');
+    }
     
     // No need to manually refetch - real-time subscription will update automatically
   };
@@ -132,7 +139,7 @@ export default function App() {
             onOpenProfile={() => setIsSettingsOpen({ isOpen: true, tab: 'profile' })}
         />
 
-        <ChatArea messages={messages} loading={loading} />
+        <ChatArea messages={messages} loading={loading} onSend={handleSend} />
 
         {/* Input Area */}
         <div className="p-4 md:p-6 bg-white/80 dark:bg-[#0F1016]/95 backdrop-blur border-t border-gray-200 dark:border-white/5 z-10 transition-colors duration-300">
@@ -148,7 +155,7 @@ export default function App() {
                     disabled={limitReached || loading}
                 />
                 <Button 
-                    onClick={handleSend}
+                    onClick={() => handleSend()}
                     disabled={limitReached || loading || !input.trim()}
                     className={`rounded-xl w-10 h-10 !p-0 flex items-center justify-center transition-all ${input.trim() ? 'opacity-100 bg-indigo-600' : 'opacity-50 bg-slate-700'}`}
                 >

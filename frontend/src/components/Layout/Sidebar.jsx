@@ -11,7 +11,7 @@ export default function Sidebar({ onNewChat, onOpenSettings }) {
          <div className="p-3 bg-gradient-to-br from-indigo-500/10 to-violet-500/10 rounded-xl border border-indigo-500/10 mb-4">
             <h3 className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider mb-1">About Lumina</h3>
             <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-               Next-gen AI assistant designed for clarity and precision. Powered by Gemini.
+               Next-gen Medical AI assistant designed for medical support. Powered by Gemini.
             </p>
          </div>
 
