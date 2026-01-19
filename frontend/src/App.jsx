@@ -14,12 +14,13 @@ export default function App() {
   const [input, setInput] = useState('');
   const [session, setSession] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
   const [isSettingsOpen, setIsSettingsOpen] = useState({ isOpen: false, tab: 'general' });
 
   const [manualEmail, setManualEmail] = useState(() => localStorage.getItem('guest_email') || null);
   const [limitType, setLimitType] = useState('guest'); // 'guest' | 'final'
 
-  // Fetch prompt count from Supabase with real-time updates
   // Fetch prompt count from Supabase with real-time updates
   const { promptCount, maxPrompts, loading: countLoading, userId: fetchedUserId } = usePromptCount(
     fingerprint,
@@ -28,7 +29,34 @@ export default function App() {
     manualEmail
   );
 
-  // ... (lines 28-65 unchanged)
+  useEffect(() => {
+    Supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+          // Check if premium
+          const checkPremium = async () => {
+              const { data, error } = await Supabase
+                  .from('user_subscriptions')
+                  .select('status')
+                  .eq('user_id', session.user.id)
+                  .single();
+              
+              if (data && (data.status === 'active' || data.status === 'trialing')) {
+                  setIsPremium(true);
+              }
+          };
+          checkPremium();
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = Supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Ensure correct limit type is shown if backend triggers limit
   useEffect(() => {
@@ -119,15 +147,17 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-[#0F1016] text-slate-900 dark:text-white overflow-hidden font-sans transition-colors duration-300">
-      {/* Sidebar (Desktop) */}
+    <div className="flex h-[100dvh] bg-gray-50 dark:bg-[#0F1016] text-slate-900 dark:text-white overflow-hidden font-sans transition-colors duration-300">
+      {/* Sidebar (Desktop & Mobile) */}
       <Sidebar 
         onNewChat={handleNewChat} 
-        onOpenSettings={() => setIsSettingsOpen({ isOpen: true, tab: 'general' })} 
+        onOpenSettings={() => setIsSettingsOpen({ isOpen: true, tab: 'general' })}
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col relative w-full">
+      <div className="flex-1 flex flex-col relative w-full min-h-0">
         <Header 
             session={session} 
             manualEmail={manualEmail}
@@ -137,6 +167,7 @@ export default function App() {
             onLogin={handleLogin}
             onLogout={handleLogout}
             onOpenProfile={() => setIsSettingsOpen({ isOpen: true, tab: 'profile' })}
+            onToggleSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         />
 
         <ChatArea messages={messages} loading={loading} onSend={handleSend} />

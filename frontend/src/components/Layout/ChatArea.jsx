@@ -17,31 +17,33 @@ export default function ChatArea({ messages, loading, onSend }) {
       ];
 
       return (
-          <div className="flex-1 flex items-center justify-center flex-col text-center p-8 opacity-90 animate-fadeIn">
-             <div className="text-6xl mb-6 grayscale hover:grayscale-0 transition-all duration-500 transform hover:scale-110 cursor-pointer">🩺</div>
-             <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-violet-500 mb-3">Lumina Health Assistant</h3>
-             <p className="text-slate-500 dark:text-slate-400 max-w-lg leading-relaxed mb-8">
-                Your AI companion for medical insights and health advice. 
-                Ask me anything about symptoms, treatments, or general wellness.
-             </p>
-
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-w-4xl w-full">
-                {sampleQuestions.map((q, idx) => (
-                    <button 
-                        key={idx}
-                        onClick={() => onSend && onSend(q)}
-                        className="px-4 py-3 bg-white dark:bg-[#1E1F2E] border border-gray-200 dark:border-white/5 rounded-xl text-sm text-slate-700 dark:text-slate-300 hover:border-indigo-500 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md text-left"
-                    >
-                        {q}
-                    </button>
-                ))}
+          <div className="flex-1 flex flex-col items-center text-center p-4 md:p-8 opacity-90 animate-fadeIn min-h-0 overflow-y-auto">
+             <div className="w-full max-w-4xl my-auto flex flex-col items-center">
+                 <div className="text-6xl mb-6 grayscale hover:grayscale-0 transition-all duration-500 transform hover:scale-110 cursor-pointer p-4 pb-0 leading-normal">🩺</div>
+                 <h3 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-violet-500 mb-3 px-4">Lumina Health Assistant</h3>
+                 <p className="text-slate-500 dark:text-slate-400 max-w-lg leading-relaxed mb-8 px-4 text-sm md:text-base">
+                    Your AI companion for medical insights and health advice. 
+                    Ask me anything about symptoms, treatments, or general wellness.
+                 </p>
+    
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full px-2">
+                    {sampleQuestions.map((q, idx) => (
+                        <button 
+                            key={idx}
+                            onClick={() => onSend && onSend(q)}
+                            className="px-4 py-3 bg-white dark:bg-[#1E1F2E] border border-gray-200 dark:border-white/5 rounded-xl text-sm text-slate-700 dark:text-slate-300 hover:border-indigo-500 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 shadow-sm hover:shadow-md text-left"
+                        >
+                            {q}
+                        </button>
+                    ))}
+                 </div>
              </div>
           </div>
       )
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 scroll-smooth custom-scrollbar">
+    <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 scroll-smooth custom-scrollbar min-h-0">
       {messages.map((msg, idx) => (
         <div key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-slideUp`}>
           <div className={`flex max-w-[90%] md:max-w-[70%] gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>

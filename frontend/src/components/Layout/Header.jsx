@@ -2,21 +2,35 @@ import React from 'react';
 import Button from '../UI/Button';
 import LimitIndicator from '../UI/LimitIndicator';
 
-export default function Header({ session, manualEmail, isPremium, promptCount, maxLimit, onLogin, onLogout, onOpenProfile }) {
+export default function Header({ session, manualEmail, isPremium, promptCount, maxLimit, onLogin, onLogout, onOpenProfile, onToggleSidebar }) {
   const userEmail = session?.user?.email || manualEmail;
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-white/80 dark:bg-[#0F1016]/80 backdrop-blur-md border-b border-gray-200 dark:border-white/5 sticky top-0 z-20 transition-colors duration-300">
+    <header className="flex items-center justify-between px-4 md:px-6 py-4 bg-white/80 dark:bg-[#0F1016]/80 backdrop-blur-md border-b border-gray-200 dark:border-white/5 sticky top-0 z-20 transition-colors duration-300">
       {/* Brand */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
+        {/* Mobile Hamburger */}
+        <button 
+            onClick={onToggleSidebar}
+            className="md:hidden p-2 -ml-2 text-slate-600 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+        >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20 flex-shrink-0">
             <span className="text-xl">✨</span>
         </div>
-        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
-          Lumina AI
-        </h1>
-        <div className="text-[10px] font-mono bg-indigo-500/10 text-indigo-500 px-2 py-0.5 rounded-full border border-indigo-500/20 ml-2">
-            Beta v1.0
+        <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-2">
+            <h1 className="text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 whitespace-nowrap">
+              Lumina AI
+            </h1>
+            <div className="text-[9px] font-mono bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full border border-indigo-500/20 w-fit">
+                Beta v1.0
+            </div>
         </div>
       </div>
 

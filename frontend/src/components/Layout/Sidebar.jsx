@@ -3,12 +3,37 @@ import Button from '../UI/Button';
 
 import { useTheme } from '../../hooks/useTheme';
 
-export default function Sidebar({ onNewChat, onOpenSettings }) {
+export default function Sidebar({ onNewChat, onOpenSettings, isOpen, onClose }) {
   const { theme, toggleTheme } = useTheme();
   return (
-    <aside className="hidden md:flex flex-col w-72 bg-white dark:bg-[#0F1016] border-r border-gray-200 dark:border-white/5 h-screen pt-4 pb-6 px-4 transition-colors duration-300">
-      <div className="mb-6 px-2 pt-4">
-         <div className="p-3 bg-gradient-to-br from-indigo-500/10 to-violet-500/10 rounded-xl border border-indigo-500/10 mb-4">
+    <>
+    {/* Mobile Overlay */}
+    {isOpen && (
+        <div 
+            className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
+            onClick={onClose}
+        />
+    )}
+
+    <aside className={`
+        fixed md:static inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#0F1016] border-r border-gray-200 dark:border-white/5 
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
+        flex flex-col h-full pt-4 pb-6 px-4
+    `}>
+      <div className="mb-6 px-2 pt-4 relative">
+         {/* Mobile Close Button */}
+         <button 
+            onClick={onClose}
+            className="absolute top-2 right-2 p-1 md:hidden text-slate-400 hover:text-slate-600 dark:hover:text-white"
+         >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+         </button>
+
+         <div className="p-3 bg-gradient-to-br from-indigo-500/10 to-violet-500/10 rounded-xl border border-indigo-500/10 mb-4 mt-2 md:mt-0">
             <h3 className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider mb-1">About Lumina</h3>
             <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
                Next-gen Medical AI assistant designed for medical support. Powered by Gemini.
@@ -51,5 +76,6 @@ export default function Sidebar({ onNewChat, onOpenSettings }) {
         </div>
       </div>
     </aside>
+    </>
   );
 }
