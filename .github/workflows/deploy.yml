@@ -33,15 +33,13 @@ jobs:
           CI: false
 
       - name: 📂 Sync files (SFTP)
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
-          server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
+          server: ${{ secrets.FTP_SERVER }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./frontend/dist/
-          server-dir: ./public_html/
-          protocol: sftp
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
+          local_path: './frontend/dist/*'
+          remote_path: '/public_html'
+          sftpArgs: '-o ConnectTimeout=5'
+          delete_remote_files: false
+          sftp_only: true
