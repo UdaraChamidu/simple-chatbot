@@ -28,9 +28,9 @@ jobs:
         working-directory: ./frontend
         run: npm run build
         env:
-          # If you are committing your .env file, these will be picked up automatically.
-          # Otherwise, add secrets for env vars here if needed.
-          CI: false
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SERVICE_ROLE_SECRET: ${{ secrets.VITE_SERVICE_ROLE_SECRET }}
+          VITE_N8N_WEBHOOK_URL: ${{ secrets.VITE_N8N_WEBHOOK_URL }}
 
       - name: 📂 Sync files (SFTP)
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
