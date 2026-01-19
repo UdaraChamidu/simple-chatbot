@@ -24,12 +24,7 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: 🔍 Debug Secrets
-        working-directory: ./frontend
-        run: |
-          if [ -z "${{ secrets.VITE_SUPABASE_URL }}" ]; then echo "❌ VITE_SUPABASE_URL is NOT set"; else echo "✅ VITE_SUPABASE_URL is set"; fi
-          if [ -z "${{ secrets.VITE_SERVICE_ROLE_SECRET }}" ]; then echo "❌ VITE_SERVICE_ROLE_SECRET is NOT set"; else echo "✅ VITE_SERVICE_ROLE_SECRET is set"; fi
-          if [ -z "${{ secrets.VITE_N8N_WEBHOOK_URL }}" ]; then echo "❌ VITE_N8N_WEBHOOK_URL is NOT set"; else echo "✅ VITE_N8N_WEBHOOK_URL is set"; fi
+
 
       - name: 🏗️ Build project
         working-directory: ./frontend
