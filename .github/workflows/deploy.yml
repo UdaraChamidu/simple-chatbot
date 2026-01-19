@@ -38,7 +38,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           server: ${{ secrets.FTP_SERVER }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local_path: './frontend/dist'
+          local_path: './frontend/dist/*'
           remote_path: '/public_html'
           sftpArgs: '-o ConnectTimeout=5'
           delete_remote_files: false
