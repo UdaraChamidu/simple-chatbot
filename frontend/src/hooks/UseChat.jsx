@@ -3,7 +3,15 @@ import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { v4 as uuidv4 } from 'uuid';
 
 export const UseChat = () => {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chat_history');
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error("Failed to parse chat history:", error);
+      return [];
+    }
+  });
   const [loading, setLoading] = useState(false);
   const [fingerprint, setFingerprint] = useState(null);
   const [sessionId, setSessionId] = useState(null);
@@ -47,6 +55,10 @@ export const UseChat = () => {
     */
 
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('chat_history', JSON.stringify(messages));
+  }, [messages]);
 
   // 2. Send Message Function
   const sendMessage = async (text, userToken = null, userEmail = "", userId = "") => {
