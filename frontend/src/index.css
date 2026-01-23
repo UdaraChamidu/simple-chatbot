@@ -38,8 +38,16 @@ body {
   background-color: var(--bg-color);
   color: var(--text-main);
   line-height: 1.6;
-  /* height: 100vh;  <-- REMOVED to let app container control height via dvh */
-  /* overflow: hidden; <-- REMOVED */
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Restored to prevent body scroll */
+  overscroll-behavior-y: none; /* Prevent pull-to-refresh rubber banding */
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #0F1016; /* Match dark mode bg to prevent white bars */
+  }
 }
 
 /* --- UTILITIES & LAYOUT --- */

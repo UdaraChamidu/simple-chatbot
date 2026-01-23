@@ -148,7 +148,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-[100dvh] bg-gray-50 dark:bg-[#0F1016] text-slate-900 dark:text-white overflow-hidden font-sans transition-colors duration-300">
+    <div className="fixed inset-0 flex bg-gray-50 dark:bg-[#0F1016] text-slate-900 dark:text-white overflow-hidden font-sans transition-colors duration-300">
       {/* Sidebar (Desktop & Mobile) */}
       <Sidebar 
         onNewChat={handleNewChat} 
