@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export default function Disclaimer() {
   return (
-    <div className="h-screen w-full flex flex-col p-4 md:p-6 bg-gradient-to-br from-indigo-50 via-white to-violet-50 dark:from-[#0F1016] dark:via-[#151621] dark:to-[#1E1F2E] font-sans relative overflow-y-auto">
+    <div className="h-[100dvh] w-full flex flex-col p-4 md:p-6 bg-gradient-to-br from-indigo-50 via-white to-violet-50 dark:from-[#0F1016] dark:via-[#151621] dark:to-[#1E1F2E] font-sans relative overflow-y-auto">
       
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none fixed">

@@ -38,8 +38,8 @@ body {
   background-color: var(--bg-color);
   color: var(--text-main);
   line-height: 1.6;
-  height: 100vh;
-  overflow: hidden; /* App container handles scroll */
+  /* height: 100vh;  <-- REMOVED to let app container control height via dvh */
+  /* overflow: hidden; <-- REMOVED */
 }
 
 /* --- UTILITIES & LAYOUT --- */
